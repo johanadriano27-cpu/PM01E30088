@@ -12,6 +12,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class MainActivity extends AppCompatActivity {
 
     ImageView imgContacto;
@@ -27,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     DBHelper dbHelper;
     Uri imagenUri;
 
-    // Variables para el modo EDITAR
+
     int idEditar = -1;
     String imagenActual = "";
 
@@ -62,15 +67,14 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
-                android.R.layout.simple_spinner_item,
+                R.layout.spinner_item,
                 paises);
 
-        adapter.setDropDownViewResource(
-                android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.spinner_item);
 
         spPais.setAdapter(adapter);
 
-        // ===== MODO EDITAR: si viene un id, llenamos los campos =====
+
         Intent i = getIntent();
         if (i.hasExtra("id")) {
 
@@ -92,9 +96,9 @@ public class MainActivity extends AppCompatActivity {
             if (img != null && !img.isEmpty()) {
                 imagenActual = img;
                 try {
-                    imgContacto.setImageURI(Uri.parse(img));
+                    mostrarFoto(Uri.parse(img));
                 } catch (Exception e) {
-                    // si ya no hay permiso para ver la imagen, se ignora
+                    // si no se puede leer la imagen, se ignora
                 }
             }
 
@@ -139,14 +143,14 @@ public class MainActivity extends AppCompatActivity {
             contacto.setTelefono(telefono);
             contacto.setNota(nota);
 
-            // Imagen: la nueva si eligió una, si no la que ya tenía
+
             if (imagenUri != null) {
                 contacto.setImagen(imagenUri.toString());
             } else {
                 contacto.setImagen(imagenActual);
             }
 
-            // ===== ACTUALIZAR =====
+
             if (idEditar != -1) {
 
                 contacto.setId(idEditar);
@@ -158,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
                             MainActivity.this,
                             "Contacto actualizado",
                             Toast.LENGTH_SHORT).show();
-                    finish(); // vuelve a la lista
+                    finish();
                 } else {
                     Toast.makeText(
                             MainActivity.this,
@@ -168,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // ===== GUARDAR NUEVO =====
+
             boolean guardado = dbHelper.insertarContacto(contacto);
 
             if (guardado) {
@@ -181,6 +185,12 @@ public class MainActivity extends AppCompatActivity {
                 etNombre.setText("");
                 etTelefono.setText("");
                 etNota.setText("");
+
+
+                imagenUri = null;
+                int p = (int) (30 * getResources().getDisplayMetrics().density);
+                imgContacto.setPadding(p, p, p, p);
+                imgContacto.setImageResource(android.R.drawable.ic_menu_camera);
 
             } else {
 
@@ -199,6 +209,36 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+    private void mostrarFoto(Uri uri) {
+        imgContacto.setPadding(0, 0, 0, 0);
+        imgContacto.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imgContacto.setImageURI(uri);
+    }
+
+
+    private String copiarImagen(Uri uri) {
+        try {
+            InputStream in = getContentResolver().openInputStream(uri);
+            File archivo = new File(getFilesDir(),
+                    "img_" + System.currentTimeMillis() + ".jpg");
+            OutputStream out = new FileOutputStream(archivo);
+
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+
+            in.close();
+            out.close();
+
+            return Uri.fromFile(archivo).toString();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode,
                                     int resultCode,
@@ -208,10 +248,18 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == 100
                 && resultCode == RESULT_OK
-                && data != null) {
+                && data != null
+                && data.getData() != null) {
 
-            imagenUri = data.getData();
-            imgContacto.setImageURI(imagenUri);
+            String ruta = copiarImagen(data.getData());
+
+            if (ruta != null) {
+                imagenUri = Uri.parse(ruta);
+                mostrarFoto(imagenUri);
+            } else {
+                Toast.makeText(this, "No se pudo cargar la imagen",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

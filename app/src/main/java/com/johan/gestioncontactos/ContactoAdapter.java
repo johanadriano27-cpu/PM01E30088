@@ -1,33 +1,34 @@
 package com.johan.gestioncontactos;
 
-import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
 public class ContactoAdapter extends RecyclerView.Adapter<ContactoAdapter.ViewHolder> {
 
+    public interface OnSeleccion {
+        void alSeleccionar(Contacto contacto);
+    }
+
     Context context;
     ArrayList<Contacto> lista;
+    OnSeleccion listener;
+    int seleccionado = -1;
 
-    public ContactoAdapter(Context context, ArrayList<Contacto> lista) {
+    public ContactoAdapter(Context context, ArrayList<Contacto> lista, OnSeleccion listener) {
         this.context = context;
         this.lista = lista;
+        this.listener = listener;
     }
 
     @NonNull
@@ -46,69 +47,34 @@ public class ContactoAdapter extends RecyclerView.Adapter<ContactoAdapter.ViewHo
         holder.txtNombre.setText(contacto.getNombre());
         holder.txtTelefono.setText(contacto.getTelefono());
 
-
-        holder.btnVerImagen.setOnClickListener(v -> {
-            Intent intent = new Intent(context, VerImagenActivity.class);
-            intent.putExtra("imagen", contacto.getImagen());
-            context.startActivity(intent);
-        });
-
-
-        holder.btnEliminar.setOnClickListener(v -> {
-            DBHelper dbHelper = new DBHelper(context);
-            dbHelper.eliminarContacto(contacto.getId());
-            int pos = holder.getAdapterPosition();
-            if (pos != RecyclerView.NO_POSITION) {
-                lista.remove(pos);
-                notifyItemRemoved(pos);
+        // Foto circular (o ícono si no hay imagen válida)
+        boolean conFoto = false;
+        String img = contacto.getImagen();
+        if (img != null && !img.isEmpty()) {
+            try {
+                holder.imgFoto.setPadding(0, 0, 0, 0);
+                holder.imgFoto.setImageURI(Uri.parse(img));
+                conFoto = holder.imgFoto.getDrawable() != null;
+            } catch (Exception e) {
+                conFoto = false;
             }
-        });
+        }
+        if (!conFoto) {
+            int p = (int) (12 * context.getResources().getDisplayMetrics().density);
+            holder.imgFoto.setPadding(p, p, p, p);
+            holder.imgFoto.setImageResource(android.R.drawable.ic_menu_myplaces);
+        }
 
+        // Resaltar el contacto seleccionado
+        holder.itemRaiz.setBackgroundColor(
+                position == seleccionado ? Color.parseColor("#DCEBFA") : Color.TRANSPARENT);
 
-        holder.btnCompartir.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TEXT,
-                    "Nombre: " + contacto.getNombre()
-                            + "\nTelefono: " + contacto.getTelefono()
-                            + "\nPais: " + contacto.getPais());
-            context.startActivity(Intent.createChooser(intent, "Compartir contacto"));
-        });
-
-
-        holder.btnLlamar.setOnClickListener(v -> {
-            new AlertDialog.Builder(context)
-                    .setTitle("Confirmar llamada")
-                    .setMessage("¿Desea llamar a " + contacto.getNombre() + "?")
-                    .setPositiveButton("Llamar", (dialog, which) -> {
-                        Intent intent = new Intent(Intent.ACTION_CALL);
-                        intent.setData(Uri.parse("tel:" + contacto.getTelefono()));
-
-                        if (ContextCompat.checkSelfPermission(context,
-                                Manifest.permission.CALL_PHONE)
-                                == PackageManager.PERMISSION_GRANTED) {
-                            context.startActivity(intent);
-                        } else {
-                            ActivityCompat.requestPermissions(
-                                    (Activity) context,
-                                    new String[]{Manifest.permission.CALL_PHONE},
-                                    100);
-                        }
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
-        });
-
-
-        holder.btnEditar.setOnClickListener(v -> {
-            Intent intent = new Intent(context, MainActivity.class); // tu Activity del formulario
-            intent.putExtra("id", contacto.getId());
-            intent.putExtra("nombre", contacto.getNombre());
-            intent.putExtra("telefono", contacto.getTelefono());
-            intent.putExtra("pais", contacto.getPais());
-            intent.putExtra("imagen", contacto.getImagen());
-            intent.putExtra("nota", contacto.getNota());
-            context.startActivity(intent);
+        holder.itemView.setOnClickListener(v -> {
+            int anterior = seleccionado;
+            seleccionado = holder.getBindingAdapterPosition();
+            if (anterior != -1) notifyItemChanged(anterior);
+            notifyItemChanged(seleccionado);
+            if (listener != null) listener.alSeleccionar(lista.get(seleccionado));
         });
     }
 
@@ -119,18 +85,16 @@ public class ContactoAdapter extends RecyclerView.Adapter<ContactoAdapter.ViewHo
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
+        View itemRaiz;
+        ImageView imgFoto;
         TextView txtNombre, txtTelefono;
-        Button btnVerImagen, btnEliminar, btnCompartir, btnLlamar, btnEditar;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            itemRaiz = itemView.findViewById(R.id.itemRaiz);
+            imgFoto = itemView.findViewById(R.id.imgFoto);
             txtNombre = itemView.findViewById(R.id.txtNombre);
             txtTelefono = itemView.findViewById(R.id.txtTelefono);
-            btnVerImagen = itemView.findViewById(R.id.btnVerImagen);
-            btnEliminar = itemView.findViewById(R.id.btnEliminar);
-            btnCompartir = itemView.findViewById(R.id.btnCompartir);
-            btnLlamar = itemView.findViewById(R.id.btnLlamar);
-            btnEditar = itemView.findViewById(R.id.btnEditar);
         }
     }
 }

@@ -1,7 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<androidx.recyclerview.widget.RecyclerView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/recyclerContactos"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+    android:layout_height="match_parent"
+    android:background="#F5F7FA"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#0D4F8B"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:text="Contactos"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etBuscar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="12dp"
+        android:background="@drawable/bg_campo"
+        android:hint="Buscar contacto"
+        android:inputType="text"
+        android:paddingHorizontal="12dp"
+        android:textColor="#000000"
+        android:textColorHint="#555555" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerContactos"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Contacto seleccionado"
+            android:textColor="#555555" />
+
+        <TextView
+            android:id="@+id/txtSelNombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ninguno"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtSelTelefono"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#555555" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnActualizar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#0D4F8B"
+                android:text="Actualizar"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btnEliminarSel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#C62828"
+                android:text="Eliminar"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnCompartirSel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#FFFFFF"
+                android:text="Compartir"
+                android:textColor="#0D4F8B" />
+
+            <Button
+                android:id="@+id/btnVerImagenSel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:backgroundTint="#FFFFFF"
+                android:text="Ver imagen"
+                android:textColor="#0D4F8B" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnLlamarSel"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:backgroundTint="#0D4F8B"
+            android:text="Llamar"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+</LinearLayout>
